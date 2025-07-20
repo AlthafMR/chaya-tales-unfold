@@ -15,6 +15,7 @@ export const ChayaBot = () => {
   const [isGenerating, setIsGenerating] = useState(false);
   const [isPlaying, setIsPlaying] = useState(false);
   const [generationStep, setGenerationStep] = useState("");
+  const [audioRef, setAudioRef] = useState<HTMLAudioElement | null>(null);
 
   const handleGenerate = async () => {
     if (!prompt.trim()) return;
@@ -28,7 +29,7 @@ export const ChayaBot = () => {
       setTimeout(() => {
         setStory({
           text: `Once upon a time, there was a magnificent ${prompt}. The story unfolds with magical adventures, filled with wonder and excitement. Each moment brought new discoveries and the characters learned valuable lessons along their journey. The tale concluded with wisdom and joy, leaving everyone with a sense of fulfillment and magic.`,
-          audioUrl: "#" // This would be the actual audio URL from ElevenLabs
+          audioUrl: "https://www.soundjay.com/misc/sounds/fail-buzzer-02.wav" // Sample audio for demo
         });
         setIsGenerating(false);
         setGenerationStep("");
@@ -179,7 +180,24 @@ export const ChayaBot = () => {
                   <Button
                     variant="outline"
                     size="icon"
-                    onClick={() => setIsPlaying(!isPlaying)}
+                    onClick={() => {
+                      if (audioRef) {
+                        if (isPlaying) {
+                          audioRef.pause();
+                        } else {
+                          audioRef.play();
+                        }
+                        setIsPlaying(!isPlaying);
+                      } else if (story?.audioUrl) {
+                        const audio = new Audio(story.audioUrl);
+                        audio.onended = () => setIsPlaying(false);
+                        audio.onpause = () => setIsPlaying(false);
+                        audio.onplay = () => setIsPlaying(true);
+                        setAudioRef(audio);
+                        audio.play();
+                        setIsPlaying(true);
+                      }
+                    }}
                     className="w-16 h-16 rounded-full border-2 border-primary/30 hover:border-primary hover:bg-primary/10"
                   >
                     {isPlaying ? (
