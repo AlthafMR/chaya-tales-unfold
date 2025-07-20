@@ -148,19 +148,6 @@ export const ChayaBot = () => {
         {/* Input Interface */}
         <Card className="max-w-4xl mx-auto p-8 shadow-magical bg-card/80 backdrop-blur-sm border-primary/20 mb-12">
           <div className="space-y-6">
-            {/* API Key Input */}
-            <div className="relative">
-              <Input
-                type="password"
-                placeholder="Enter your ElevenLabs API key..."
-                value={apiKey}
-                onChange={(e) => setApiKey(e.target.value)}
-                className="text-lg border-2 border-primary/20 focus:border-primary bg-input/50 backdrop-blur-sm rounded-2xl p-6 pr-12"
-                disabled={isGenerating}
-              />
-              <Key className="absolute right-4 top-1/2 transform -translate-y-1/2 w-5 h-5 text-muted-foreground" />
-            </div>
-            
             <div className="relative">
               <Textarea
                 placeholder="Enter your idea... (e.g., 'a tree and a carpenter')"
