@@ -2,8 +2,7 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Card } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import { Mic, Play, Pause, Download, RotateCcw, Sparkles, BookOpen, Volume2, Key } from "lucide-react";
+import { Mic, Play, Pause, Download, RotateCcw, Sparkles, BookOpen, Volume2 } from "lucide-react";
 
 interface Story {
   text: string;
@@ -16,70 +15,25 @@ export const ChayaBot = () => {
   const [isGenerating, setIsGenerating] = useState(false);
   const [isPlaying, setIsPlaying] = useState(false);
   const [generationStep, setGenerationStep] = useState("");
-  const [audioRef, setAudioRef] = useState<HTMLAudioElement | null>(null);
-  const [apiKey, setApiKey] = useState("");
-
-  const generateAudio = async (text: string): Promise<string> => {
-    if (!apiKey) {
-      throw new Error("Please enter your ElevenLabs API key");
-    }
-
-    const response = await fetch("https://api.elevenlabs.io/v1/text-to-speech/9BWtsMINqrJLrRacOk9x", {
-      method: "POST",
-      headers: {
-        "Accept": "audio/mpeg",
-        "Content-Type": "application/json",
-        "xi-api-key": apiKey,
-      },
-      body: JSON.stringify({
-        text: text,
-        model_id: "eleven_multilingual_v2",
-        voice_settings: {
-          stability: 0.5,
-          similarity_boost: 0.5
-        }
-      })
-    });
-
-    if (!response.ok) {
-      throw new Error("Failed to generate audio");
-    }
-
-    const audioBlob = await response.blob();
-    return URL.createObjectURL(audioBlob);
-  };
 
   const handleGenerate = async () => {
     if (!prompt.trim()) return;
-    if (!apiKey.trim()) {
-      alert("Please enter your ElevenLabs API key");
-      return;
-    }
     
     setIsGenerating(true);
     setGenerationStep("Writing your story...");
     
-    try {
-      // Generate story text
-      const storyText = `Once upon a time, there was a magnificent ${prompt}. The story unfolds with magical adventures, filled with wonder and excitement. Each moment brought new discoveries and the characters learned valuable lessons along their journey. The tale concluded with wisdom and joy, leaving everyone with a sense of fulfillment and magic.`;
-      
-      setGenerationStep("Creating audio narration...");
-      
-      // Generate audio
-      const audioUrl = await generateAudio(storyText);
-      
-      setStory({
-        text: storyText,
-        audioUrl: audioUrl
-      });
-      setIsGenerating(false);
-      setGenerationStep("");
-    } catch (error) {
-      console.error("Error generating story:", error);
-      alert("Error generating story. Please check your API key and try again.");
-      setIsGenerating(false);
-      setGenerationStep("");
-    }
+    // Simulate AI generation
+    setTimeout(() => {
+      setGenerationStep("Bringing it to life...");
+      setTimeout(() => {
+        setStory({
+          text: `Once upon a time, there was a magnificent ${prompt}. The story unfolds with magical adventures, filled with wonder and excitement. Each moment brought new discoveries and the characters learned valuable lessons along their journey. The tale concluded with wisdom and joy, leaving everyone with a sense of fulfillment and magic.`,
+          audioUrl: "#" // This would be the actual audio URL from ElevenLabs
+        });
+        setIsGenerating(false);
+        setGenerationStep("");
+      }, 2000);
+    }, 2000);
   };
 
   const FloatingElement = ({ children, delay = 0 }: { children: React.ReactNode; delay?: number }) => (
@@ -225,24 +179,7 @@ export const ChayaBot = () => {
                   <Button
                     variant="outline"
                     size="icon"
-                    onClick={() => {
-                      if (audioRef) {
-                        if (isPlaying) {
-                          audioRef.pause();
-                        } else {
-                          audioRef.play();
-                        }
-                        setIsPlaying(!isPlaying);
-                      } else if (story?.audioUrl) {
-                        const audio = new Audio(story.audioUrl);
-                        audio.onended = () => setIsPlaying(false);
-                        audio.onpause = () => setIsPlaying(false);
-                        audio.onplay = () => setIsPlaying(true);
-                        setAudioRef(audio);
-                        audio.play();
-                        setIsPlaying(true);
-                      }
-                    }}
+                    onClick={() => setIsPlaying(!isPlaying)}
                     className="w-16 h-16 rounded-full border-2 border-primary/30 hover:border-primary hover:bg-primary/10"
                   >
                     {isPlaying ? (
