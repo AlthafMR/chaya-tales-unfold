@@ -2,7 +2,8 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Card } from "@/components/ui/card";
-import { Mic, Play, Pause, Download, RotateCcw, Sparkles, BookOpen, Volume2 } from "lucide-react";
+import { Input } from "@/components/ui/input";
+import { Mic, Play, Pause, Download, RotateCcw, Sparkles, BookOpen, Volume2, Key } from "lucide-react";
 
 interface Story {
   text: string;
@@ -16,25 +17,69 @@ export const ChayaBot = () => {
   const [isPlaying, setIsPlaying] = useState(false);
   const [generationStep, setGenerationStep] = useState("");
   const [audioRef, setAudioRef] = useState<HTMLAudioElement | null>(null);
+  const [apiKey, setApiKey] = useState("");
+
+  const generateAudio = async (text: string): Promise<string> => {
+    if (!apiKey) {
+      throw new Error("Please enter your ElevenLabs API key");
+    }
+
+    const response = await fetch("https://api.elevenlabs.io/v1/text-to-speech/9BWtsMINqrJLrRacOk9x", {
+      method: "POST",
+      headers: {
+        "Accept": "audio/mpeg",
+        "Content-Type": "application/json",
+        "xi-api-key": apiKey,
+      },
+      body: JSON.stringify({
+        text: text,
+        model_id: "eleven_multilingual_v2",
+        voice_settings: {
+          stability: 0.5,
+          similarity_boost: 0.5
+        }
+      })
+    });
+
+    if (!response.ok) {
+      throw new Error("Failed to generate audio");
+    }
+
+    const audioBlob = await response.blob();
+    return URL.createObjectURL(audioBlob);
+  };
 
   const handleGenerate = async () => {
     if (!prompt.trim()) return;
+    if (!apiKey.trim()) {
+      alert("Please enter your ElevenLabs API key");
+      return;
+    }
     
     setIsGenerating(true);
     setGenerationStep("Writing your story...");
     
-    // Simulate AI generation
-    setTimeout(() => {
-      setGenerationStep("Bringing it to life...");
-      setTimeout(() => {
-        setStory({
-          text: `Once upon a time, there was a magnificent ${prompt}. The story unfolds with magical adventures, filled with wonder and excitement. Each moment brought new discoveries and the characters learned valuable lessons along their journey. The tale concluded with wisdom and joy, leaving everyone with a sense of fulfillment and magic.`,
-          audioUrl: "https://www.soundjay.com/misc/sounds/fail-buzzer-02.wav" // Sample audio for demo
-        });
-        setIsGenerating(false);
-        setGenerationStep("");
-      }, 2000);
-    }, 2000);
+    try {
+      // Generate story text
+      const storyText = `Once upon a time, there was a magnificent ${prompt}. The story unfolds with magical adventures, filled with wonder and excitement. Each moment brought new discoveries and the characters learned valuable lessons along their journey. The tale concluded with wisdom and joy, leaving everyone with a sense of fulfillment and magic.`;
+      
+      setGenerationStep("Creating audio narration...");
+      
+      // Generate audio
+      const audioUrl = await generateAudio(storyText);
+      
+      setStory({
+        text: storyText,
+        audioUrl: audioUrl
+      });
+      setIsGenerating(false);
+      setGenerationStep("");
+    } catch (error) {
+      console.error("Error generating story:", error);
+      alert("Error generating story. Please check your API key and try again.");
+      setIsGenerating(false);
+      setGenerationStep("");
+    }
   };
 
   const FloatingElement = ({ children, delay = 0 }: { children: React.ReactNode; delay?: number }) => (
@@ -103,6 +148,19 @@ export const ChayaBot = () => {
         {/* Input Interface */}
         <Card className="max-w-4xl mx-auto p-8 shadow-magical bg-card/80 backdrop-blur-sm border-primary/20 mb-12">
           <div className="space-y-6">
+            {/* API Key Input */}
+            <div className="relative">
+              <Input
+                type="password"
+                placeholder="Enter your ElevenLabs API key..."
+                value={apiKey}
+                onChange={(e) => setApiKey(e.target.value)}
+                className="text-lg border-2 border-primary/20 focus:border-primary bg-input/50 backdrop-blur-sm rounded-2xl p-6 pr-12"
+                disabled={isGenerating}
+              />
+              <Key className="absolute right-4 top-1/2 transform -translate-y-1/2 w-5 h-5 text-muted-foreground" />
+            </div>
+            
             <div className="relative">
               <Textarea
                 placeholder="Enter your idea... (e.g., 'a tree and a carpenter')"
